@@ -21,6 +21,11 @@
 // - llvm udf works fine. .so udf wasn't tested
 // - selector is the same with hive get_json_object, except that * operator is not supported
 
+
+// we have to define this macro before <inttypes.h> is included 
+// so compile on linux works
+#define __STDC_FORMAT_MACROS
+
 #include <stdlib.h>
 #include "jsonUdf.h"
 #include <impala_udf/udf-debug.h>
