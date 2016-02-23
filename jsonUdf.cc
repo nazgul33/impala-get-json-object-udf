@@ -62,8 +62,9 @@ StringVal JsonGetObject(FunctionContext *context, const StringVal & jsonVal, con
 
 #define selectValByToken(tok) { \
     rapidjson::Value& va = *currentVal;  \
-    if (va.HasMember(tok.c_str())) { \
-        currentVal = &(va[tok.c_str()]); \
+    rapidjson::Value key(rapidjson::StringRef(tok.c_str())); \
+    if (va.HasMember(key) { \
+        currentVal = &(va[key]); \
     } else { \
         /* context->AddWarning("no member"); */ \
         /* context->AddWarning(tok.c_str()); */ \
