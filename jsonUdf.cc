@@ -30,6 +30,11 @@
 #include "jsonUdf.h"
 #include <impala_udf/udf-debug.h>
 
+// customize rapidjson namespace name to avoid version clashes
+#define RAPIDJSON_NAMESPACE json_get_object::rapidjson
+#define RAPIDJSON_NAMESPACE_BEGIN namespace json_get_object { namespace rapidjson {
+#define RAPIDJSON_NAMESPACE_END   } }
+
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
@@ -47,7 +52,7 @@ StringVal JsonGetObject(FunctionContext *context, const StringVal & jsonVal, con
     std::string json((const char*)jsonVal.ptr, jsonVal.len);
     std::string selector((const char*)selectorVal.ptr, selectorVal.len);
 
-    rapidjson::Document d;
+    RAPIDJSON_NAMESPACE::Document d;
     d.Parse(json.c_str());
     if (d.HasParseError()) {
         // context->AddWarning("Failed to parse json string");
@@ -55,15 +60,16 @@ StringVal JsonGetObject(FunctionContext *context, const StringVal & jsonVal, con
     }
 
     const char * pSel = selector.c_str();
-    rapidjson::Value *currentVal = NULL;
+    RAPIDJSON_NAMESPACE::Value *currentVal = NULL;
     int i;
     bool inBracket = false;
     std::string token;
 
 #define selectValByToken(tok) { \
-    rapidjson::Value& va = *currentVal;  \
-    if (va.HasMember(tok.c_str())) { \
-        currentVal = &(va[tok.c_str()]); \
+    RAPIDJSON_NAMESPACE::Value& va = *currentVal;  \
+    RAPIDJSON_NAMESPACE::Value key(RAPIDJSON_NAMESPACE::StringRef(tok.c_str())); \
+    if (va.HasMember(key)) { \
+        currentVal = &(va[key]); \
     } else { \
         /* context->AddWarning("no member"); */ \
         /* context->AddWarning(tok.c_str()); */ \
@@ -112,7 +118,7 @@ StringVal JsonGetObject(FunctionContext *context, const StringVal & jsonVal, con
                 context->SetError("* symbol is not supported, yet");
                 return StringVal::null();
             } else {
-                rapidjson::Value& va = *currentVal;
+                RAPIDJSON_NAMESPACE::Value& va = *currentVal;
                 int idx = atoi(token.c_str());
                 if (idx>=va.Size()) {
                     //context->AddWarning("array index is too big");
@@ -172,8 +178,8 @@ StringVal JsonGetObject(FunctionContext *context, const StringVal & jsonVal, con
         return result;
     }
     // other cases : object, array
-    rapidjson::StringBuffer buffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    RAPIDJSON_NAMESPACE::StringBuffer buffer;
+    RAPIDJSON_NAMESPACE::Writer<RAPIDJSON_NAMESPACE::StringBuffer> writer(buffer);
     currentVal->Accept(writer);
 
     const char * written = buffer.GetString();
