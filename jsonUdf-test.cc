@@ -34,13 +34,15 @@ int main(int argc, char** argv) {
   }
 
   {
-    const char * json = "{\"store\":{\"fruit\":[{\"weight\":8,\"type\":\"apple\"},{\"weight\":9,\"type\":\"pear\"}],\"bicycle\":{\"price\":19.95,\"color\":\"red\"}},\"email\":\"amy@only_for_json_udf_test.net\",\"owner\":\"amy\"}";
+    const char * json = "{\"store\":{\"fruit\":[{\"weight\":8,\"type\":\"apple\"},{\"weight\":9,\"type\":\"pear\"}],\"bicycle\":{\"price\":19.95,\"color\":\"red\"}},\"email\":\"amy@only_for_json_udf_test.net\",\"owner\":\"amy\",\"lang.iso 639-1\":\"en\"}";
     passed &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
         JsonGetObject, StringVal(json), StringVal("$.owner"), StringVal("amy"));
     passed &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
         JsonGetObject, StringVal(json), StringVal("$.store.fruit[0]"), StringVal("{\"weight\":8,\"type\":\"apple\"}"));
     passed &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
         JsonGetObject, StringVal(json), StringVal("$.non_exist_key"), StringVal::null());
+    passed &= UdfTestHarness::ValidateUdf<StringVal, StringVal, StringVal>(
+        JsonGetObject, StringVal(json), StringVal("$.lang\\.iso 639-1"), StringVal("en"));
   }
 
   cout << "Tests " << (passed ? "Passed." : "Failed.") << endl;
