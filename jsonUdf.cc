@@ -20,6 +20,7 @@
 // - output is always a String
 // - llvm udf works fine. .so udf wasn't tested
 // - selector is the same with hive get_json_object, except that * operator is not supported
+// - selector supports backslash escape for names with special chars (characters that should be escaped currently: '.$[]\')
 
 
 // we have to define this macro before <inttypes.h> is included 
@@ -128,6 +129,14 @@ StringVal JsonGetObject(FunctionContext *context, const StringVal & jsonVal, con
                 token.clear();
             }
             inBracket = false;
+            break;
+        case '\\':
+	    i++;
+            if (i >= selector.size()) {
+                context->SetError("encountered backslash at end of selector");
+                return StringVal::null();
+            }
+            token += pSel[i];
             break;
         default:
             token += pSel[i];
